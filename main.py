@@ -19,8 +19,8 @@ with xw.App(visible = False, add_book = False) as app:  # 启动Excel程序
 
         if ErrorName_flag:
             for i in range(len(ErrorName_index)):
-                  print(f"Error Cell Index:{ErrorName_index[i]}")
-                  print(f"Error Cell Value:{ErrorName_value[i]}")
+                  print(f"Error Cell Index: {ErrorName_index[i]}")
+                  print(f"Error Cell Value: {ErrorName_value[i]}")
 
         # 节点序号检查
         ErrorNumber_flag = 0; ErrorNumber_index = []; ErrorNumber_value = []
@@ -28,7 +28,7 @@ with xw.App(visible = False, add_book = False) as app:  # 启动Excel程序
 
         if ErrorNumber_flag:
             for i in range(len(ErrorNumber_index)):
-                  print(f"Error Cell Index:{ErrorNumber_index[i]}")
-                  print(f"Error Cell Value:{ErrorNumber_value[i]}")
+                  print(f"Error Cell Index: {ErrorNumber_index[i]}")
+                  print(f"Error Cell Value: {ErrorNumber_value[i]}")
 
 

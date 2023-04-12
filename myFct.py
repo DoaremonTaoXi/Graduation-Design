@@ -1,5 +1,6 @@
 import xlwings as xw  # 导入xlwings模块
 import re
+import os
 
 """
 自定义函数
@@ -269,3 +270,105 @@ def CheckNumber(worksheet):
         ErrorNumber_value.append(worksheet.range(element).value)
 
     return (ErrorNumber_flag, ErrorNumber_index, ErrorNumber_value)
+
+# Name:     
+# Function: 
+# Input:    
+# Output:   
+def getContent(worksheet, flag):
+    rng = worksheet.used_range
+    Ncells = rng.count
+    Nrows = rng.rows.count
+    Ncols = rng.columns.count
+
+    dic = {}
+    for row in range(6, Nrows+1):
+        if not flag:
+            cell = 'C' + str(row)
+        else:
+            cell = 'F' + str(row)
+        dic[row] = worksheet.range(cell).value
+
+    return dic
+
+# Name:     
+# Function: 
+# Input:    
+# Output:   
+def loadCorpus():
+    corpus = open("chinese synonym.txt","r",encoding='utf-8')  # 读取txt文件
+    synonyms = {}
+    for line in corpus:
+        word = line.strip().split("\t")
+        num = len(word)
+        for i in range(0, num):
+            synonyms[word[i]] = word[0] # synonyms的每个键的值是列表的第一个内容
+    # print(synonyms)
+    return synonyms
+
+# Name:     
+# Function: 
+# Input:    
+# Output:  
+def pretreatContent(dic):
+    for key, value in dic.items():
+        if value == "空":
+            dic[key] = None
+    return dic
+
+# Name:     
+# Function: 
+# Input:    
+# Output:   
+def assayContent(dic0, dic1, synonyms):
+    dic0 = pretreatContent(dic0)
+    dic1 = pretreatContent(dic1)
+    
+    Error_flag = 0
+    Error_cell = []
+
+    for key,_ in dic0.items():
+        if dic0[key] == dic1[key]:
+            continue
+        elif synonyms.get(dic0[key]) or synonyms.get(dic1[key]) != None:
+            if synonyms.get(dic0[key]) == synonyms.get(dic1[key]):
+                continue
+            else:
+                Error_flag = 1
+                Error_cell.append('C'+str(key))
+                Error_cell.append('F'+str(key))
+        else:
+            Error_flag = 1
+            Error_cell.append('C'+str(key))
+            Error_cell.append('F'+str(key))
+
+    return (Error_flag, Error_cell)
+
+# Name:     
+# Function: 
+# Input:    
+# Output:   
+def CheckContent(worksheet):
+    rng = worksheet.used_range
+    Ncells = rng.count
+    Nrows = rng.rows.count
+    Ncols = rng.columns.count
+
+    ErrorContent_flag = 0
+    ErrorContent_cell = []
+    ErrorContent_value = []
+
+    StartNodeContent = getContent(worksheet,0)
+    EndNodeContent = getContent(worksheet, 1)
+    sysnonyms = loadCorpus()
+
+    ErrorContent_flag, ErrorContent_cell = assayContent(StartNodeContent, EndNodeContent, sysnonyms)
+
+    if ErrorContent_cell:
+        for item in ErrorContent_cell:
+            ErrorContent_value.append(worksheet.range(item).value)
+    
+    return (ErrorContent_flag, ErrorContent_cell, ErrorContent_value)
+
+
+

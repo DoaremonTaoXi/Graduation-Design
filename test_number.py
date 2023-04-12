@@ -18,5 +18,5 @@ with xw.App(visible = False, add_book = False) as app:  # 启动Excel程序
     
     if ErrorNumber_flag:
             for i in range(len(ErrorNumber_index)):
-                  print(f"Error Cell Index:{ErrorNumber_index[i]}")
-                  print(f"Error Cell Value:{ErrorNumber_value[i]}")
+                  print(f"Error Cell Index: {ErrorNumber_index[i]}")
+                  print(f"Error Cell Value: {ErrorNumber_value[i]}")
