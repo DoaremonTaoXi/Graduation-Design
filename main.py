@@ -31,4 +31,12 @@ with xw.App(visible = False, add_book = False) as app:  # 启动Excel程序
                   print(f"Error Cell Index: {ErrorNumber_index[i]}")
                   print(f"Error Cell Value: {ErrorNumber_value[i]}")
 
+        # 节点内容检查
+        ErrorContent_flag = 0; ErrorContent_cell = []; ErrorContent_value = []
+        ErrorContent_flag, ErrorContent_cell, ErrorContent_value = myFct.CheckContent(worksheet)
+
+        if ErrorContent_flag:
+            for i in range(len(ErrorContent_cell)):
+                    print(f"Error Cell Index: {ErrorContent_cell[i]}")
+                    print(f"Error Cell Value: {ErrorContent_value[i]}")
 

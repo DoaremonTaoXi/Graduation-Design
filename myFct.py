@@ -296,12 +296,12 @@ def getContent(worksheet, flag):
 # Input:    
 # Output:   
 def loadCorpus():
-    corpus = open("chinese synonym.txt","r",encoding='utf-8')  # 读取txt文件
+    corpus = open("corpus.txt","r",encoding='utf-8')  # 读取txt文件
     synonyms = {}
     for line in corpus:
         word = line.strip().split("\t")
         num = len(word)
-        for i in range(0, num):
+        for i in range(num):
             synonyms[word[i]] = word[0] # synonyms的每个键的值是列表的第一个内容
     # print(synonyms)
     return synonyms
@@ -312,8 +312,8 @@ def loadCorpus():
 # Output:  
 def pretreatContent(dic):
     for key, value in dic.items():
-        if value == "空":
-            dic[key] = None
+        if value == None:
+            dic[key] = 'None'
     return dic
 
 # Name:     
