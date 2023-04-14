@@ -4,7 +4,7 @@ import os
 
 """
 自定义函数
-"""
+"""   
 # Name:     pretreatNodeName0
 # Function: 处理node0名称含有“、\n”和“\n”的情况
 # Input:    nodename0(str)
@@ -91,7 +91,7 @@ def assayName(dic0, dic1):
 # Name:     CheckName
 # Function: 节点名称检查主函数
 # Input:    worksheet(worksheet):工作簿
-# Output:   ErrorName_flag(int):0\1     ErrorName_index(list)       ErrorName_value(list)
+# Output:   ErrorName_flag(int):0\1     ErrorName_cell(list)       ErrorName_value(list)
 def CheckName(worksheet):
     rng = worksheet.used_range
     Ncells = rng.count
@@ -99,7 +99,7 @@ def CheckName(worksheet):
     Ncols = rng.columns.count
 
     ErrorName_flag = 0
-    ErrorName_index = []
+    ErrorName_cell = []
     ErrorName_value = []
 
     StartNode0 = getNodeName0(worksheet, 0)
@@ -127,13 +127,13 @@ def CheckName(worksheet):
     for key, value in ErrorStartName_dic.items():
         for i in range(len(value)):
             ErrorName_value.append(key)
-        ErrorName_index.extend(value)
+        ErrorName_cell.extend(value)
     for key, value in ErrorEndName_dic.items():
         for i in range(len(value)):
             ErrorName_value.append(key)
-        ErrorName_index.extend(value)
+        ErrorName_cell.extend(value)
     
-    return (ErrorName_flag, ErrorName_index, ErrorName_value)
+    return (ErrorName_flag, ErrorName_cell, ErrorName_value)
 
 # Name:     pretreatNumber
 # Function: 处理序号中 "14, 15, 16~17", None 等情况
@@ -238,38 +238,38 @@ def CheckNumber(worksheet):
     Ncols = rng.columns.count
     
     ErrorNumber_flag = 0
-    ErrorNumber_index = []
+    ErrorNumber_cell = []
     ErrorNumber_value = []
 
     # StartNumber检查
     ErrorStartNumber_flag = 0
-    ErrorStartNumber_index = []
+    ErrorStartNumber_cell = []
 
     dic0 = getNumber(worksheet,0)
     for key, value in dic0.items():
         new_number, new_number_index = pretreatNumber(value)
-        ErrorStartNumber_flag, ErrorStartNumber_index = assayNumber(new_number, new_number_index, ErrorStartNumber_flag, ErrorStartNumber_index)
+        ErrorStartNumber_flag, ErrorStartNumber_cell = assayNumber(new_number, new_number_index, ErrorStartNumber_flag, ErrorStartNumber_cell)
 
-    ErrorStartNumber_index = ['B%d' % element for element in ErrorStartNumber_index]
+    ErrorStartNumber_cell = ['B%d' % element for element in ErrorStartNumber_cell]
     
 
     #EndNumber检查
     ErrorEndNumber_flag = 0
-    ErrorEndNumber_index = []
+    ErrorEndNumber_cell = []
     dic1 = getNumber(worksheet,1)
     for key, value in dic1.items():
         new_number, new_number_index = pretreatNumber(value)
-        ErrorEndNumber_flag, ErrorEndNumber_index = assayNumber(new_number, new_number_index, ErrorEndNumber_flag, ErrorEndNumber_index)
+        ErrorEndNumber_flag, ErrorEndNumber_cell = assayNumber(new_number, new_number_index, ErrorEndNumber_flag, ErrorEndNumber_cell)
 
-    ErrorEndNumber_index = ['E%d' % element for element in ErrorEndNumber_index]
+    ErrorEndNumber_cell = ['E%d' % element for element in ErrorEndNumber_cell]
     
 
     ErrorNumber_flag = ErrorStartNumber_flag or ErrorEndNumber_flag
-    ErrorNumber_index = ErrorStartNumber_index + ErrorEndNumber_index
-    for element in ErrorNumber_index:
-        ErrorNumber_value.append(worksheet.range(element).value)
+    ErrorNumber_cell = ErrorStartNumber_cell + ErrorEndNumber_cell
+    for element in ErrorNumber_cell:
+        ErrorNumber_value.append(str(worksheet.range(element).value))
 
-    return (ErrorNumber_flag, ErrorNumber_index, ErrorNumber_value)
+    return (ErrorNumber_flag, ErrorNumber_cell, ErrorNumber_value)
 
 # Name:     
 # Function: 
@@ -349,26 +349,26 @@ def assayContent(dic0, dic1, synonyms):
 # Input:    
 # Output:   
 def CheckContent(worksheet):
-    rng = worksheet.used_range
-    Ncells = rng.count
-    Nrows = rng.rows.count
-    Ncols = rng.columns.count
+        rng = worksheet.used_range
+        Ncells = rng.count
+        Nrows = rng.rows.count
+        Ncols = rng.columns.count
 
-    ErrorContent_flag = 0
-    ErrorContent_cell = []
-    ErrorContent_value = []
+        ErrorContent_flag = 0
+        ErrorContent_cell = []
+        ErrorContent_value = []
 
-    StartNodeContent = getContent(worksheet,0)
-    EndNodeContent = getContent(worksheet, 1)
-    sysnonyms = loadCorpus()
+        StartNodeContent = getContent(worksheet,0)
+        EndNodeContent = getContent(worksheet, 1)
+        sysnonyms = loadCorpus()
 
-    ErrorContent_flag, ErrorContent_cell = assayContent(StartNodeContent, EndNodeContent, sysnonyms)
+        ErrorContent_flag, ErrorContent_cell = assayContent(StartNodeContent, EndNodeContent, sysnonyms)
 
-    if ErrorContent_cell:
-        for item in ErrorContent_cell:
-            ErrorContent_value.append(worksheet.range(item).value)
-    
-    return (ErrorContent_flag, ErrorContent_cell, ErrorContent_value)
+        if ErrorContent_cell:
+            for item in ErrorContent_cell:
+                ErrorContent_value.append(str(worksheet.range(item).value))
+        
+        return (ErrorContent_flag, ErrorContent_cell, ErrorContent_value)
 
 
 

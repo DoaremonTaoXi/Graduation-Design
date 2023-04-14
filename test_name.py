@@ -12,10 +12,10 @@ with xw.App(visible = False, add_book = False) as app:  # 启动Excel程序
     print(worksheet.name)
 
     # 节点名称检查
-    ErrorName_flag = 0; ErrorName_index = []; ErrorName_value = []
-    ErrorName_flag, ErrorName_index, ErrorName_value = myFct.CheckName(worksheet)
+    ErrorName_flag = 0; ErrorName_cell = []; ErrorName_value = []
+    ErrorName_flag, ErrorName_cell, ErrorName_value = myFct.CheckName(worksheet)
     
     if ErrorName_flag:
-            for i in range(len(ErrorName_index)):
-                  print(f"Error Cell Index: {ErrorName_index[i]}")
-                  print(f"Error Cell Value: {ErrorName_value[i]}")
+            for i in range(len(ErrorName_cell)):
+                  print(f"Error Cell: {ErrorName_cell[i]}")
+                  print(f"Error Value: {ErrorName_value[i]}")
