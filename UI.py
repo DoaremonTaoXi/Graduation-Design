@@ -8,6 +8,7 @@ from threading import  Thread
 import xlwings as xw
 import time
 import myFct
+import os
 
 # 信号库
 class SignalStore(QObject):
@@ -40,6 +41,7 @@ class MainWindow(QMainWindow):
         # Connect signals and slots
         self.ui.Button_Import.clicked.connect(self.on_Button_Import_clicked)
         self.ui.Button_Run.clicked.connect(self.on_Button_Run_clicked)
+        self.ui.Button_Export.clicked.connect(self.on_Button_Export_clicked)
         self.ui.Button_Cancel.clicked.connect(QApplication.instance().quit)
 
         so.signal_warning.connect(self.signal_warning_slot)
@@ -92,7 +94,7 @@ class MainWindow(QMainWindow):
         self.ui.progressBar.setRange(0, value)
 
     def signal_finished_slot(self, value):
-        QMessageBox.information(self.ui,'Run successfully',f'elapsed time:  {value:.2f}  s')
+        QMessageBox.information(self.ui,'Run successfully',f'程序运行时间:  {value:.2f}  s')
     
     # Button的slot函数
     def on_Button_Import_clicked(self):
@@ -112,7 +114,7 @@ class MainWindow(QMainWindow):
 
                 # 记录信息初始化
                 sheetnames = []; sheetNrows = []; sheetNcols = []
-                Error_flag = 0; Error_sheet = []; Error_cell = []; Error_value = []
+                self.Error_flag = 0; self.Error_sheet = []; self.Error_cell = []; self.Error_value = []
 
                 with xw.App(visible = False, add_book = False) as app:  # 启动Excel程序
                     workbook = app.books.open(self.filename)
@@ -121,29 +123,32 @@ class MainWindow(QMainWindow):
                     so.signal_initProgressBar.emit(worksheets.count)  # 设置进度条范围
 
                     for worksheet in worksheets:
-                        # 记录表格信息（名称、行数、列数）
-                        sheetnames.append(worksheet.name)
-                        rng = worksheet.used_range
-                        sheetNrows.append(str(rng.rows.count))
-                        sheetNcols.append(str(rng.columns.count))
-                        
-                        # 运行检查程序，纪录错误信息
-                        ErrorName_flag, ErrorName_cell, ErrorName_value = myFct.CheckName(worksheet)
-                        ErrorNumber_flag, ErrorNumber_cell, ErrorNumber_value = myFct.CheckNumber(worksheet)
-                        ErrorContent_flag, ErrorContent_cell, ErrorContent_value = myFct.CheckContent(worksheet)
-                        # 将错误信息进行整合
-                        Error_flag = ErrorName_flag or ErrorNumber_flag or ErrorContent_flag or Error_flag
-                        Error_cell.extend(ErrorName_cell + ErrorNumber_cell + ErrorContent_cell)
-                        Error_value.extend(ErrorName_value + ErrorNumber_value + ErrorContent_value)
-                        for i in range(len(ErrorName_cell + ErrorNumber_cell + ErrorContent_cell)):
-                            Error_sheet.append(worksheet.name)
+                        if worksheet.visible:  # 如果工作表可见，则处理该工作表
+                            # 记录表格信息（名称、行数、列数）
+                            sheetnames.append(worksheet.name)
+                            rng = worksheet.used_range
+                            sheetNrows.append(str(rng.rows.count))
+                            sheetNcols.append(str(rng.columns.count))
+                            
+                            # 运行检查程序，纪录错误信息
+                            ErrorName_flag, ErrorName_cell, ErrorName_value = myFct.CheckName(worksheet)
+                            ErrorNumber_flag, ErrorNumber_cell, ErrorNumber_value = myFct.CheckNumber(worksheet)
+                            ErrorContent_flag, ErrorContent_cell, ErrorContent_value = myFct.CheckContent(worksheet)
+                            # 将错误信息进行整合
+                            self.Error_flag = ErrorName_flag or ErrorNumber_flag or ErrorContent_flag or self.Error_flag
+                            self.Error_cell.extend(ErrorName_cell + ErrorNumber_cell + ErrorContent_cell)
+                            self.Error_value.extend(ErrorName_value + ErrorNumber_value + ErrorContent_value)
+                            for i in range(len(ErrorName_cell + ErrorNumber_cell + ErrorContent_cell)):
+                                self.Error_sheet.append(worksheet.name)
 
-                        so.signal_updateProgressBar.emit(worksheet.index)
-                        # print(f'{worksheet.name} Run successfully')
+                            so.signal_updateProgressBar.emit(worksheet.index)
+                            # print(f'{worksheet.name} Run successfully')
+                        else:
+                            pass
                 
                 # 输出检查结果
                 so.signal_updateTableSheets.emit((sheetnames, sheetNrows, sheetNcols))
-                so.signal_updateTableResults.emit((Error_flag, Error_sheet, Error_cell, Error_value))         
+                so.signal_updateTableResults.emit((self.Error_flag, self.Error_sheet, self.Error_cell, self.Error_value))         
 
                 end_time = time.time()
                 elapsed_time = end_time - start_time
@@ -152,7 +157,6 @@ class MainWindow(QMainWindow):
             else:
                 # 发出信息，通知主线程进行进度处理
                 so.signal_warning.emit()
-                return
 
             self.ongoing = False
 
@@ -163,6 +167,27 @@ class MainWindow(QMainWindow):
         # 创建新线程
         worker = Thread(target=workerThreadFunc)
         worker.start()
+
+    def on_Button_Export_clicked(self):
+        # 定义表格每列的宽度
+        widths = [30, 20, 20]
+        # 将表格内容转换成字符串，并按行拼接
+        lines = []
+        # 写入表头
+        report_headers = ['Error Sheet', 'Error Cell', 'Error Value']
+        # 写入内容
+        if self.Error_flag:
+            for i in range(len(self.Error_cell)):
+                lines.append((self.Error_sheet[i], self.Error_cell[i], self.Error_value[i]))
+        # 将每个单元格的宽度传递给 tabulate
+        report = myFct.generateReport(3, report_headers, lines, widths)
+        # 获取用户选择的保存路径
+        save_path, _ = QFileDialog.getSaveFileName(self, '保存文件', os.getenv('HOME'), 'Text Files (*.txt)')
+        # 写入检查报告
+        if save_path:
+            with open(save_path, 'w') as f:
+                f.write(report)
+
 
     # TableResults初始化
     def init_TableResults(self):

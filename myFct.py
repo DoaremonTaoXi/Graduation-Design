@@ -1,4 +1,5 @@
 import xlwings as xw  # 导入xlwings模块
+from wcwidth import wcswidth
 import re
 import os
 
@@ -147,12 +148,15 @@ def pretreatNumber(list):
             temp = re.split(r',|，|,\n|，\n',item[1])
             for element in temp:
                 if '~' in element:
-                    start, end = element.split('~')
-                    for i in range(int(start), int(end)+1):
-                        new_number.append(i)
-                        new_number_index.append(item[0])
+                    start, end = map(int, element.split('~'))
+                    new_number.extend(range(start, end+1))
+                    new_number_index.extend([item[0]]*(end-start+1))
+                elif '-' in element:
+                    start, end = map(int, element.split('-'))
+                    new_number.extend(range(start, end+1))
+                    new_number_index.extend([item[0]]*(end-start+1))
                 else:
-                    new_number.append(int(element))
+                    new_number.append(element)
                     new_number_index.append(item[0])
         else:
             new_number.append(item[1])
@@ -170,7 +174,7 @@ def removeNone(list, list_index):
     new_list = []
     new_list_index = []
     for index, item in enumerate(list):
-        if item is not None:
+        if item is not None and item != '':
             new_list.append(int(item))
             new_list_index.append(list_index[index])
 
@@ -370,5 +374,24 @@ def CheckContent(worksheet):
         
         return (ErrorContent_flag, ErrorContent_cell, ErrorContent_value)
 
-
+# Name:     
+# Function: 
+# Input:    
+# Output:  
+def generateReport(cols, headers, list, widths):
+    lines = []
+    temp = ''
+    for i in range(0,cols):
+        fill_width = widths[i] - wcswidth(headers[i])
+        temp +=  headers[i]+ ' ' * fill_width
+    lines.append(temp)
+    for item in list:
+        temp = ''
+        for i in range(0,cols):
+            fill_width = widths[i] - wcswidth(item[i])
+            temp += item[i] + ' ' * fill_width
+        lines.append(temp)
+    # 将行拼接成整个表格的字符串
+    str = "\n".join(lines)
+    return str
 

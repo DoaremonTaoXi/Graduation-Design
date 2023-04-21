@@ -1,18 +1,15 @@
-import numpy as np
-import torch
-from torch.utils import data
-from d2l import torch as d2l
+from gensim.models import Word2Vec
 
-true_w = torch.tensor([2, -3.4])
-true_b = 4.2
-features, labels = d2l.synthetic_data(true_w, true_b, 1000)
+# 读取同义词语料库
+sentences = []
+with open('corpus.txt', 'r', encoding='utf-8') as f:
+    for line in f:
+        sentence = line.strip().split("\t")
+        sentences.append(sentence)
 
-def load_array(data_arrays, batch_size, is_train=True):  #@save
-    """构造一个PyTorch数据迭代器"""
-    dataset = data.TensorDataset(*data_arrays)
-    return data.DataLoader(dataset, batch_size, shuffle=is_train)
+# 训练Word2Vec模型
+model = Word2Vec(sentences, vector_size=100, window=5, min_count=1, workers=4)
 
-batch_size = 10
-data_iter = load_array((features, labels), batch_size)
-
-next(iter(data_iter))
+# 获取相似词
+similar_words = model.wv.most_similar('星务计算机A12V电源')
+print(similar_words)
